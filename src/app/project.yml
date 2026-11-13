@@ -193,16 +193,20 @@ targets:
           # These two qcow2 files are tiny sparse seeds (64 MiB and 16 GiB
           # virtual). The app copies them into Documents on first launch; the
           # pre-booted snapshot later replaces the userdata seed in place.
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           QEMU_IMG="$(command -v qemu-img || true)"
-          if [ -z "$QEMU_IMG" ]; then
-            echo "error: qemu-img is required to generate the firmware and userdata seeds" >&2
-            exit 1
+          if [ -z "$QEMU_IMG" ] && [ -x /opt/homebrew/bin/qemu-img ]; then
+            QEMU_IMG=/opt/homebrew/bin/qemu-img
           fi
           VARS_SEED="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/lineage-efi-vars-seed.fd"
           VDB_SEED="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/lineage-vdb-seed.qcow2"
           rm -f "$VARS_SEED" "$VDB_SEED"
-          "$QEMU_IMG" create -f qcow2 "$VARS_SEED" 64M
-          "$QEMU_IMG" create -f qcow2 "$VDB_SEED" 16G
+          if [ -n "$QEMU_IMG" ]; then
+            "$QEMU_IMG" create -f qcow2 "$VARS_SEED" 64M
+            "$QEMU_IMG" create -f qcow2 "$VDB_SEED" 16G
+          else
+            python3 -c "import struct; [open(p,'wb').write(struct.pack('>4sIIQIIQQIIQQQQII', b'QFI\xfb', 3, 0, 0, 16, s, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 104).ljust(65536, b'\x00')) for p, s in [('$VARS_SEED', 67108864), ('$VDB_SEED', 17179869184)]]"
+          fi
 
           # The parts of Android's /system that apps on the translation layer read directly: CA certificates and the system
           # fonts (scripts/build_android_system.sh makes them from the Lineage image). Flutter apps need both.

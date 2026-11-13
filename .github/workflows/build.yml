@@ -17,7 +17,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install meson ninja pkg-config python3 xcodegen libyaml
+          brew install meson ninja pkg-config python3 xcodegen libyaml qemu
           python3 -m pip install --break-system-packages pyyaml mako packaging || true
           /opt/homebrew/bin/python3 -m pip install --break-system-packages pyyaml mako packaging || true
           rustup target add aarch64-apple-ios
