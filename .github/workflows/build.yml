@@ -17,7 +17,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install meson ninja pkg-config python3 xcodegen qemu-img
+          brew install meson ninja pkg-config python3 xcodegen
           rustup target add aarch64-apple-ios
 
       - name: Build IPA
